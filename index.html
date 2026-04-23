@@ -1,1 +1,315 @@
-<h1>Hello World Wide Web!</h1>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dokyong Ryoo</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+
+      canvas {
+        display: block;
+      }
+
+      /* ---------------- NAV ---------------- */
+      nav {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 28px;
+        z-index: 10;
+        color: white;
+        background: rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+        transition: opacity 0.8s;
+      }
+
+      .logo {
+        font-weight: bold;
+        letter-spacing: 2px;
+        white-space: nowrap;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 18px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        opacity: 0.75;
+        transition: 0.3s;
+      }
+
+      .nav-links a:hover {
+        opacity: 1;
+        text-shadow: 0 0 10px cyan, 0 0 20px cyan;
+        color: cyan;
+      }
+
+      /* ---------------- MOBILE ---------------- */
+      @media (max-width: 600px) {
+        nav {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+
+        .nav-links {
+          gap: 10px;
+          flex-wrap: wrap;
+        }
+
+        .nav-links a {
+          font-size: 12px;
+        }
+      }
+    </style>
+
+    <!-- IMPORT MAP FIX -->
+    <script type="importmap">
+      {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.152/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/"
+    }
+  }
+  </script>
+  </head>
+
+  <body>
+
+    <nav id="nav">
+      <div class="logo">My Art</div>
+      <div class="nav-links">
+        <a href="index.html" data-color="0x00ffff">Home</a>
+        <a href="bio.html" data-color="0xff0033">Artist Bio</a>
+        <a href="work.html" data-color="0x00ff66">Work</a>
+        <a href="contact.html" data-color="0xffcc00">Contact</a>
+      </div>
+    </nav>
+
+    <script type="module">
+      import * as THREE from "three";
+      import {
+        EffectComposer
+      } from "three/addons/postprocessing/EffectComposer.js";
+      import {
+        RenderPass
+      } from "three/addons/postprocessing/RenderPass.js";
+      import {
+        UnrealBloomPass
+      } from "three/addons/postprocessing/UnrealBloomPass.js";
+
+      // ---------------- SCENE ----------------
+      const scene = new THREE.Scene();
+
+      const camera = new THREE.OrthographicCamera(
+        window.innerWidth / -2,
+        window.innerWidth / 2,
+        window.innerHeight / 2,
+        window.innerHeight / -2,
+        1,
+        1000
+      );
+      camera.position.z = 10;
+
+      const renderer = new THREE.WebGLRenderer({
+        antialias: true
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(window.devicePixelRatio);
+      document.body.appendChild(renderer.domElement);
+
+      // ---------------- BLOOM ----------------
+      const composer = new EffectComposer(renderer);
+      composer.addPass(new RenderPass(scene, camera));
+
+      const bloomPass = new UnrealBloomPass(
+        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        0.8,
+        0.4,
+        0.2
+      );
+      composer.addPass(bloomPass);
+
+      // ---------------- LASERS ----------------
+      function createLaser (color, y) {
+        const material = new THREE.MeshBasicMaterial({
+          color,
+          transparent: true,
+          blending: THREE.AdditiveBlending
+        });
+
+        const geometry = new THREE.PlaneGeometry(window.innerWidth, 5);
+        const mesh = new THREE.Mesh(geometry, material);
+
+        mesh.position.y = y;
+        mesh.scale.x = 0;
+
+        scene.add(mesh);
+        return mesh;
+      }
+
+      const centerBeam = createLaser(0x00ffff, 0);
+      const topBeam = createLaser(0xff0033, 200);
+      const bottomBeam = createLaser(0x00ff66, -200);
+
+      // ---------------- TEXT ----------------
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = 1024;
+      canvas.height = 256;
+
+      ctx.fillStyle = "white";
+      ctx.font = "bold 80px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Dokyong Ryoo", canvas.width / 2, 150);
+
+      const texture = new THREE.CanvasTexture(canvas);
+
+      const textMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          map: {
+            value: texture
+          },
+          revealY: {
+            value: 0.0
+          }
+        },
+        transparent: true,
+        vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+    }
+  `,
+        fragmentShader: `
+    uniform sampler2D map;
+    uniform float revealY;
+    varying vec2 vUv;
+
+    void main() {
+      vec4 tex = texture2D(map, vUv);
+      float mask = smoothstep(revealY - 0.05, revealY + 0.05, vUv.y);
+      gl_FragColor = vec4(tex.rgb, tex.a * mask);
+    }
+  `
+      });
+
+      const textMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(800, 200),
+        textMaterial
+      );
+      scene.add(textMesh);
+
+      // ---------------- CINEMATIC CONTROL ----------------
+      let time = 0;
+      let redirected = false;
+      const INTRO_END = 3.5;
+
+      // fade-in bloom
+      bloomPass.strength = 0;
+
+      // ---------------- NAV → LASER SYNC ----------------
+      const nav = document.getElementById("nav");
+      const links = document.querySelectorAll(".nav-links a");
+
+      links.forEach(link => {
+        link.addEventListener("mouseenter", () => {
+          const color = parseInt(link.dataset.color);
+
+          centerBeam.material.color.setHex(color);
+          topBeam.material.color.setHex(color);
+          bottomBeam.material.color.setHex(color);
+
+          bloomPass.strength = 1.8;
+        });
+
+        link.addEventListener("mouseleave", () => {
+          centerBeam.material.color.setHex(0x00ffff);
+          topBeam.material.color.setHex(0xff0033);
+          bottomBeam.material.color.setHex(0x00ff66);
+
+          bloomPass.strength = 0.8;
+        });
+      });
+
+      // ---------------- ANIMATION ----------------
+      function animate () {
+        requestAnimationFrame(animate);
+        time += 0.01;
+
+        // ---------------- INTRO SEQUENCE ----------------
+        if (time < 1) bloomPass.strength = time * 0.8;
+
+        if (time < 1) centerBeam.scale.x = time;
+        else if (time < 2) {
+          centerBeam.scale.y = 1 + (time - 1) * 25;
+          textMaterial.uniforms.revealY.value = (time - 1) * 0.5;
+        }
+
+        if (time > 0.6 && time < 1.6) {
+          topBeam.scale.x = (time - 0.6);
+        } else if (time > 1.6) {
+          topBeam.scale.y = 1 + (time - 1.6) * 20;
+        }
+
+        if (time > 0.9 && time < 1.9) {
+          bottomBeam.scale.x = (time - 0.9);
+        } else if (time > 1.9) {
+          bottomBeam.scale.y = 1 + (time - 1.9) * 20;
+        }
+
+        // ---------------- AUTO TRANSITION ----------------
+        if (time > INTRO_END && !redirected) {
+          redirected = true;
+
+          // cinematic fade-out
+          renderer.domElement.style.transition = "opacity 0.8s";
+          renderer.domElement.style.opacity = "0";
+          nav.style.opacity = "0";
+
+          setTimeout(() => {
+            window.location.href = "bio.html";
+          }, 800);
+        }
+
+        composer.render();
+      }
+
+      animate();
+
+      // ---------------- RESIZE ----------------
+      window.addEventListener("resize", () => {
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        camera.left = window.innerWidth / -2;
+        camera.right = window.innerWidth / 2;
+        camera.top = window.innerHeight / 2;
+        camera.bottom = window.innerHeight / -2;
+        camera.updateProjectionMatrix();
+
+        composer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+
+  </body>
+</html>
