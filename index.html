@@ -22,7 +22,6 @@
         display: block;
       }
 
-      /* ---------------- NAV ---------------- */
       nav {
         position: absolute;
         top: 0;
@@ -66,7 +65,6 @@
         color: white;
       }
 
-      /* ---------------- MOBILE ---------------- */
       @media (max-width: 600px) {
         nav {
           flex-direction: column;
@@ -87,16 +85,15 @@
 
     <script type="importmap">
       {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.152/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/"
-    }
-  }
-  </script>
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.152/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.152/examples/jsm/"
+        }
+      }
+    </script>
   </head>
 
   <body>
-
     <nav id="nav">
       <div class="logo">DK's Portfolio</div>
       <div class="nav-links">
@@ -119,14 +116,16 @@
         UnrealBloomPass
       } from "three/addons/postprocessing/UnrealBloomPass.js";
 
-      // ---------------- SCENE ----------------
+      let width = window.innerWidth;
+      let height = window.innerHeight;
+
       const scene = new THREE.Scene();
 
       const camera = new THREE.OrthographicCamera(
-        window.innerWidth / -2,
-        window.innerWidth / 2,
-        window.innerHeight / 2,
-        window.innerHeight / -2,
+        width / -2,
+        width / 2,
+        height / 2,
+        height / -2,
         1,
         1000
       );
@@ -135,23 +134,21 @@
       const renderer = new THREE.WebGLRenderer({
         antialias: true
       });
-      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setSize(width, height);
       renderer.setPixelRatio(window.devicePixelRatio);
       document.body.appendChild(renderer.domElement);
 
-      // ---------------- BLOOM ----------------
       const composer = new EffectComposer(renderer);
       composer.addPass(new RenderPass(scene, camera));
 
       const bloomPass = new UnrealBloomPass(
-        new THREE.Vector2(window.innerWidth, window.innerHeight),
+        new THREE.Vector2(width, height),
         0.8,
         0.4,
         0.2
       );
       composer.addPass(bloomPass);
 
-      // ---------------- LASERS ----------------
       function createLaser (color, y) {
         const material = new THREE.MeshBasicMaterial({
           color,
@@ -159,7 +156,7 @@
           blending: THREE.AdditiveBlending
         });
 
-        const geometry = new THREE.PlaneGeometry(window.innerWidth, 5);
+        const geometry = new THREE.PlaneGeometry(width, 5);
         const mesh = new THREE.Mesh(geometry, material);
 
         mesh.position.y = y;
@@ -173,19 +170,13 @@
       const topBeam = createLaser(0xebb4ed, 200);
       const bottomBeam = createLaser(0xb4edd4, -200);
 
-      // ---------------- TEXT ----------------
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
-
       const texture = new THREE.CanvasTexture(canvas);
 
       function drawText () {
-        const w = window.innerWidth;
-        const h = window.innerHeight;
-
-        // keep aspect ratio
-        canvas.width = w * 2;
-        canvas.height = (h * 2) * 0.25;
+        canvas.width = width * 2;
+        canvas.height = (height * 2) * 0.25;
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -193,15 +184,10 @@
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
 
-        // scale font based on width
         const fontSize = canvas.width * 0.08;
         ctx.font = `bold ${fontSize}px Arial`;
 
-        ctx.fillText(
-          "Dokyong Ryoo",
-          canvas.width / 2,
-          canvas.height / 2
-        );
+        ctx.fillText("Dokyong Ryoo", canvas.width / 2, canvas.height / 2);
 
         texture.needsUpdate = true;
       }
@@ -219,26 +205,24 @@
         },
         transparent: true,
         vertexShader: `
-    varying vec2 vUv;
-    void main() {
-      vUv = uv;
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-    }
-  `,
+          varying vec2 vUv;
+          void main() {
+            vUv = uv;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+          }
+        `,
         fragmentShader: `
-  uniform sampler2D map;
-  uniform float revealY;
-  varying vec2 vUv;
+          uniform sampler2D map;
+          uniform float revealY;
+          varying vec2 vUv;
 
-  void main() {
-    vec4 tex = texture2D(map, vUv);
-
-    float dist = abs(vUv.y - 0.5);
-    float mask = smoothstep(revealY - 0.05, revealY + 0.05, dist);
-
-    gl_FragColor = vec4(tex.rgb, tex.a * mask);
-  }
-`
+          void main() {
+            vec4 tex = texture2D(map, vUv);
+            float dist = abs(vUv.y - 0.5);
+            float mask = smoothstep(revealY - 0.05, revealY + 0.05, dist);
+            gl_FragColor = vec4(tex.rgb, tex.a * mask);
+          }
+        `
       });
 
       const textMesh = new THREE.Mesh(
@@ -247,16 +231,10 @@
       );
       scene.add(textMesh);
 
-      // ---------------- CINEMATIC CONTROL ----------------
       let time = 0;
       let redirected = false;
       let bloomTarget = 0;
 
-      // fade-in bloom
-      bloomTarget = 0;
-      bloomPass.strength = 0;
-
-      // ---------------- NAV → LASER SYNC ----------------
       const nav = document.getElementById("nav");
       const links = document.querySelectorAll(".nav-links a");
 
@@ -272,26 +250,28 @@
         });
 
         link.addEventListener("mouseleave", () => {
-          centerBeam.material.color.setHex(0xebb4ed);
-          topBeam.material.color.setHex(0xb4edd4);
-          bottomBeam.material.color.setHex(0x00ff66);
+          centerBeam.material.color.setHex(0xff0033);
+          topBeam.material.color.setHex(0xebb4ed);
+          bottomBeam.material.color.setHex(0xb4edd4);
 
           bloomTarget = 0.8;
         });
       });
 
-      // ---------------- ANIMATION ----------------
       function animate () {
         requestAnimationFrame(animate);
         time += 0.01;
+
         if (!redirected) {
           bloomTarget = 0.6 + Math.sin(time * 0.8) * 0.15;
         }
-        // ---------------- INTRO SEQUENCE ----------------
-        if (time < 1) bloomPass.strength = time * 0.8;
 
-        if (time < 1) centerBeam.scale.x = time;
-        else if (time < 2) {
+        bloomPass.strength += (bloomTarget - bloomPass.strength) * 0.1;
+
+        if (time < 1) {
+          bloomPass.strength = time * 0.8;
+          centerBeam.scale.x = time;
+        } else if (time < 2) {
           centerBeam.scale.y = 1 + (time - 1) * 25;
           textMaterial.uniforms.revealY.value = (time - 1) * 0.5;
         }
@@ -308,13 +288,14 @@
           bottomBeam.scale.y = 1 + (time - 1.9) * 20;
         }
 
-        // ---------------- AUTO TRANSITION ----------------
-
         composer.render();
       }
 
-      function goToNav () {
+      function goToNav (e) {
         if (redirected) return;
+
+        if (e.target.tagName === "A") return;
+
         redirected = true;
 
         renderer.domElement.style.transition = "opacity 0.8s";
@@ -326,31 +307,33 @@
         }, 800);
       }
 
-      // click anywhere
       window.addEventListener("click", goToNav);
-
-      // keyboard press anywhere
       window.addEventListener("keydown", goToNav);
-
-      // mobile touch
       window.addEventListener("touchstart", goToNav);
+
       animate();
 
-      // ---------------- RESIZE ----------------
       window.addEventListener("resize", () => {
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        width = window.innerWidth;
+        height = window.innerHeight;
 
-        camera.left = window.innerWidth / -2;
-        camera.right = window.innerWidth / 2;
-        camera.top = window.innerHeight / 2;
-        camera.bottom = window.innerHeight / -2;
+        renderer.setSize(width, height);
+
+        camera.left = width / -2;
+        camera.right = width / 2;
+        camera.top = height / 2;
+        camera.bottom = height / -2;
         camera.updateProjectionMatrix();
 
-        composer.setSize(window.innerWidth, window.innerHeight);
+        composer.setSize(width, height);
+
+        [centerBeam, topBeam, bottomBeam].forEach(beam => {
+          beam.geometry.dispose();
+          beam.geometry = new THREE.PlaneGeometry(width, 5);
+        });
 
         drawText();
       });
     </script>
-
   </body>
 </html>
