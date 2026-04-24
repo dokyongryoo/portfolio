@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>Dokyong Ryoo</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <style>
       body {
@@ -32,8 +32,6 @@
         padding: 18px 28px;
         z-index: 10;
         color: white;
-        background: rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(8px);
         transition: opacity 0.8s;
       }
 
@@ -71,7 +69,7 @@
     </script>
   </head>
 
-  <body>
+  <body style="overscroll-behavior-x: auto;">
     <nav id="nav">
       <div class="logo">DK's Portfolio</div>
       <div class="nav-links">
@@ -98,7 +96,6 @@
       let height = window.innerHeight;
 
       const scene = new THREE.Scene();
-      const textScene = new THREE.Scene();
 
       const camera = new THREE.OrthographicCamera(
         width / -2, width / 2,
@@ -120,7 +117,7 @@
 
       const bloomPass = new UnrealBloomPass(
         new THREE.Vector2(width, height),
-        1.5,
+        1.2,
         0.4,
         0.2
       );
@@ -141,67 +138,57 @@
           blending: THREE.AdditiveBlending,
           depthWrite: false,
           vertexShader: `
-      varying vec2 vUv;
-      void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-      }
-    `,
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
+            }
+          `,
           fragmentShader: `
-      varying vec2 vUv;
-      uniform float uTime;
-      uniform float uAngle;
+            varying vec2 vUv;
+            uniform float uTime;
+            uniform float uAngle;
 
-      vec3 hsv2rgb(vec3 c) {
-        vec3 rgb = clamp(abs(mod(c.x*6.0 + vec3(0,4,2),6.0)-3.0)-1.0, 0.0, 1.0);
-        return c.z * mix(vec3(1.0), rgb, c.y);
-      }
+            vec3 hsv2rgb(vec3 c) {
+              vec3 rgb = clamp(abs(mod(c.x*6.0 + vec3(0,4,2),6.0)-3.0)-1.0, 0.0, 1.0);
+              return c.z * mix(vec3(1.0), rgb, c.y);
+            }
 
-      void main() {
-        // normalize to screen space
-        vec2 uv = vUv * 2.0 - 1.0;
+            void main() {
+              vec2 uv = vUv * 2.0 - 1.0;
 
-        // rotate beam
-        float s = sin(uAngle);
-        float c = cos(uAngle);
-        uv = mat2(c, -s, s, c) * uv;
+              float s = sin(uAngle);
+              float c = cos(uAngle);
+              uv = mat2(c, -s, s, c) * uv;
 
-        // raymarch depth simulation
-        float intensity = 0.0;
-        float steps = 25.0;
+              float steps = 25.0;
+              float intensity = 0.0;
 
-        for (float i = 0.0; i < steps; i++) {
-          float t = i / steps;
+              for (float i = 0.0; i < 25.0; i++) {
+                if (i >= steps) break;
+                float t = i / steps;
 
-          // widen beam with depth
-          float width = 0.1 + t * 0.6;
+                float width = 0.1 + t * 0.6;
+                float edge = abs(uv.x) - (width - abs(uv.y) * 1.2);
+                float slice = smoothstep(0.02, 0.0, edge);
+                slice *= (1.0 - t);
+                intensity += slice * 0.04;
+              }
 
-          float edge = abs(uv.x) - (width - abs(uv.y) * 1.2);
+              float hue = mod(uTime * 0.08 + uv.x * 0.4, 1.0);
+              vec3 color = hsv2rgb(vec3(hue, 1.0, 1.0));
 
-          float slice = smoothstep(0.02, 0.0, edge);
-
-          // fade with depth (fog effect)
-          slice *= (1.0 - t);
-
-          intensity += slice * 0.04;
-        }
-
-        // spatial color spectrum (merges naturally)
-        float hue = mod(uTime * 0.08 + uv.x * 0.4, 1.0);
-        vec3 color = hsv2rgb(vec3(hue, 1.0, 1.0));
-
-        float alpha = intensity * 0.5;
-gl_FragColor = vec4(color * alpha, alpha);
-}
-    `
+              float alpha = intensity * 0.5;
+              gl_FragColor = vec4(color * alpha, alpha);
+            }
+          `
         });
 
         const geometry = new THREE.PlaneGeometry(width * 2, height * 2);
         const mesh = new THREE.Mesh(geometry, material);
-
         mesh.position.y = y;
+        mesh.position.z = 0;
         scene.add(mesh);
-
         return mesh;
       }
 
@@ -210,100 +197,94 @@ gl_FragColor = vec4(color * alpha, alpha);
       const bottomBeam = createLaser(-80, -0.5);
 
       // ---------- TEXT ----------
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      const texture = new THREE.CanvasTexture(canvas);
+      const textCanvas = document.createElement("canvas");
+      const ctx = textCanvas.getContext("2d");
+      const texture = new THREE.CanvasTexture(textCanvas);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.generateMipmaps = false;
 
       function drawText () {
-        canvas.width = width * 2;
-        canvas.height = height * 0.5;
+        const dpr = window.devicePixelRatio || 1;
+        const fontSize = Math.round(120 * dpr);
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = "white";
+        // Measurement pass
+        textCanvas.width = 4096;
+        textCanvas.height = fontSize * 2;
+        ctx.font = `bold ${fontSize}px Arial`;
+
+        const measured = ctx.measureText("Dokyong Ryoo");
+        const textW = Math.ceil(measured.width);
+
+        const pad = Math.round(fontSize * 0.2);
+        textCanvas.width = textW + pad * 2;
+        textCanvas.height = fontSize + pad * 2;
+
+        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.fillStyle = "rgba(255,255,255,0.6)";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
-
-        ctx.font = `bold ${canvas.width * 0.08}px Arial`;
-        ctx.fillText("Dokyong Ryoo", canvas.width / 2, canvas.height / 2);
+        ctx.fillText("Dokyong Ryoo", textCanvas.width / 2, textCanvas.height / 2);
 
         texture.needsUpdate = true;
       }
 
       drawText();
 
-      const textMaterial = new THREE.ShaderMaterial({
-        uniforms: {
-          map: {
-            value: texture
-          },
-          revealY: {
-            value: 0
-          }
-        },
+      const textMaterial = new THREE.MeshBasicMaterial({
+        map: texture,
         transparent: true,
         depthTest: false,
-        vertexShader: `
-          varying vec2 vUv;
-          void main(){
-            vUv = uv;
-            gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
-          }
-        `,
-        fragmentShader: `
-          uniform sampler2D map;
-          uniform float revealY;
-          varying vec2 vUv;
-
-          void main(){
-            vec4 tex = texture2D(map, vUv);
-            float mask = 1.0;
-            gl_FragColor = vec4(tex.rgb, tex.a * mask);
-          }
-        `
       });
 
-      const textMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(800, 200),
-        textMaterial
-      );
-      textScene.add(textMesh);
+      function makeTextGeometry () {
+        const aspect = textCanvas.width / textCanvas.height;
+        const w = width * 0.3;
+        return new THREE.PlaneGeometry(w, w / aspect);
+      }
+
+      const textMesh = new THREE.Mesh(makeTextGeometry(), textMaterial);
+      textMesh.position.z = 1;
+      scene.add(textMesh);
 
       // ---------- ANIMATION ----------
+      const MAX_TIME = 10;
       let time = 0;
       let redirected = false;
 
       function animate () {
         requestAnimationFrame(animate);
 
-        time += 0.01;
+        if (time < MAX_TIME) time += 0.01;
 
-        centerBeam.material.uniforms.uTime.value = time;
-        topBeam.material.uniforms.uTime.value = time;
-        bottomBeam.material.uniforms.uTime.value = time;
+        const t = time;
 
-        // intro motion
-        if (time < 1) {
-          bloomPass.strength = time * 1.5;
-          centerBeam.scale.x = time;
-        } else if (time < 2) {
-          centerBeam.scale.y = 1 + (time - 1) * 20;
+        centerBeam.material.uniforms.uTime.value = t;
+        topBeam.material.uniforms.uTime.value = t;
+        bottomBeam.material.uniforms.uTime.value = t;
+
+        // Intro motion
+        if (t < 1) {
+          bloomPass.strength = t * 1.2;
+          centerBeam.scale.x = t;
+        } else if (t < 2) {
+          centerBeam.scale.y = 1 + (t - 1) * 20;
         }
 
-        if (time > 0.6 && time < 1.6) {
-          topBeam.scale.x = (time - 0.6);
-        } else if (time > 1.6) {
-          topBeam.scale.y = 1 + (time - 1.6) * 15;
+        if (t > 0.6 && t < 1.6) {
+          topBeam.scale.x = (t - 0.6);
+        } else if (t > 1.6) {
+          topBeam.scale.y = 1 + (t - 1.6) * 15;
         }
 
-        if (time > 0.9 && time < 1.9) {
-          bottomBeam.scale.x = (time - 0.9);
-        } else if (time > 1.9) {
-          bottomBeam.scale.y = 1 + (time - 1.9) * 15;
+        if (t > 0.9 && t < 1.9) {
+          bottomBeam.scale.x = (t - 0.9);
+        } else if (t > 1.9) {
+          bottomBeam.scale.y = 1 + (t - 1.9) * 15;
         }
 
         renderer.clear();
         composer.render();
-        renderer.render(textScene, camera);
       }
 
       function goToNav (e) {
@@ -341,6 +322,9 @@ gl_FragColor = vec4(color * alpha, alpha);
         composer.setSize(width, height);
 
         drawText();
+
+        textMesh.geometry.dispose();
+        textMesh.geometry = makeTextGeometry();
       });
     </script>
   </body>
