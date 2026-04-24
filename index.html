@@ -166,9 +166,9 @@
         return mesh;
       }
 
-      const centerBeam = createLaser(0x00ffff, 0);
-      const topBeam = createLaser(0xff0033, 200);
-      const bottomBeam = createLaser(0x00ff66, -200);
+      const centerBeam = createLaser(0xff0033, 0);
+      const topBeam = createLaser(0xebb4ed, 200);
+      const bottomBeam = createLaser(0xb4edd4, -200);
 
       // ---------------- TEXT ----------------
       const canvas = document.createElement("canvas");
@@ -223,7 +223,7 @@
       // ---------------- CINEMATIC CONTROL ----------------
       let time = 0;
       let redirected = false;
-      const INTRO_END = 3.5;
+      const INTRO_END = 6.3;
 
       // fade-in bloom
       bloomPass.strength = 0;
@@ -244,8 +244,8 @@
         });
 
         link.addEventListener("mouseleave", () => {
-          centerBeam.material.color.setHex(0x00ffff);
-          topBeam.material.color.setHex(0xff0033);
+          centerBeam.material.color.setHex(0xebb4ed);
+          topBeam.material.color.setHex(0xb4edd4);
           bottomBeam.material.color.setHex(0x00ff66);
 
           bloomPass.strength = 0.8;
