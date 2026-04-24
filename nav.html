@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Navigation</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      font-family: Arial, sans-serif;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* subtle animated glow background */
+    body::before {
+      content: "";
+      position: absolute;
+      width: 120%;
+      height: 120%;
+      background: radial-gradient(circle at center,
+        rgba(0,255,255,0.08),
+        rgba(255,0,80,0.05),
+        rgba(0,255,120,0.05),
+        transparent 60%);
+      filter: blur(60px);
+      animation: pulse 6s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.6; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    .menu {
+      position: relative;
+      text-align: center;
+      z-index: 2;
+    }
+
+    .menu h1 {
+      color: white;
+      font-size: 28px;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+      opacity: 0.9;
+    }
+
+    .menu a {
+      display: block;
+      margin: 18px 0;
+      font-size: 22px;
+      text-decoration: none;
+      color: white;
+      opacity: 0.75;
+      transition: 0.25s ease;
+      letter-spacing: 1px;
+    }
+
+    /* ---------------- LASER COLORS ---------------- */
+
+    .home:hover {
+      color: #00ffff;
+      text-shadow: 0 0 12px #00ffff, 0 0 30px #00ffff;
+      opacity: 1;
+    }
+
+    .bio:hover {
+      color: #ff0033;
+      text-shadow: 0 0 12px #ff0033, 0 0 30px #ff0033;
+      opacity: 1;
+    }
+
+    .work:hover {
+      color: #00ff66;
+      text-shadow: 0 0 12px #00ff66, 0 0 30px #00ff66;
+      opacity: 1;
+    }
+
+    .contact:hover {
+      color: #ffcc00;
+      text-shadow: 0 0 12px #ffcc00, 0 0 30px #ffcc00;
+      opacity: 1;
+    }
+
+    /* mobile */
+    @media (max-width: 600px) {
+      .menu a {
+        font-size: 18px;
+      }
+
+      .menu h1 {
+        font-size: 22px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="menu">
+    <h1>Dokyong Ryoo</h1>
+
+    <a class="home" href="home.html">Home</a>
+    <a class="bio" href="bio.html">Artist Bio</a>
+    <a class="work" href="work.html">Work</a>
+    <a class="contact" href="contact.html">Contact</a>
+  </div>
+
+</body>
+</html>
