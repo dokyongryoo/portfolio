@@ -15,6 +15,10 @@
       }
 
       canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 0;
         display: block;
       }
 
@@ -58,8 +62,8 @@
 
       .nav-links a:hover {
         opacity: 1;
-        text-shadow: 0 0 10px cyan, 0 0 20px cyan;
-        color: cyan;
+        text-shadow: 0 0 10px white, 0 0 20px white;
+        color: white;
       }
 
       /* ---------------- MOBILE ---------------- */
@@ -94,7 +98,7 @@
   <body>
 
     <nav id="nav">
-      <div class="logo">My Art</div>
+      <div class="logo">DK's Portfolio</div>
       <div class="nav-links">
         <a href="index.html" data-color="0x00ffff">Home</a>
         <a href="bio.html" data-color="0xff0033">Artist Bio</a>
@@ -173,15 +177,36 @@
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
 
-      canvas.width = 1024;
-      canvas.height = 256;
-
-      ctx.fillStyle = "white";
-      ctx.font = "bold 80px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText("Dokyong Ryoo", canvas.width / 2, 150);
-
       const texture = new THREE.CanvasTexture(canvas);
+
+      function drawText () {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+
+        // keep aspect ratio
+        canvas.width = w * 2;
+        canvas.height = (h * 2) * 0.25;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+
+        // scale font based on width
+        const fontSize = canvas.width * 0.08;
+        ctx.font = `bold ${fontSize}px Arial`;
+
+        ctx.fillText(
+          "Dokyong Ryoo",
+          canvas.width / 2,
+          canvas.height / 2
+        );
+
+        texture.needsUpdate = true;
+      }
+
+      drawText();
 
       const textMaterial = new THREE.ShaderMaterial({
         uniforms: {
@@ -200,7 +225,7 @@
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
     }
   `,
-fragmentShader: `
+        fragmentShader: `
   uniform sampler2D map;
   uniform float revealY;
   varying vec2 vUv;
@@ -225,9 +250,10 @@ fragmentShader: `
       // ---------------- CINEMATIC CONTROL ----------------
       let time = 0;
       let redirected = false;
-      const INTRO_END = 6.3;
+      let bloomTarget = 0;
 
       // fade-in bloom
+      bloomTarget = 0;
       bloomPass.strength = 0;
 
       // ---------------- NAV → LASER SYNC ----------------
@@ -242,7 +268,7 @@ fragmentShader: `
           topBeam.material.color.setHex(color);
           bottomBeam.material.color.setHex(color);
 
-          bloomPass.strength = 1.8;
+          bloomTarget = 1.8;
         });
 
         link.addEventListener("mouseleave", () => {
@@ -250,7 +276,7 @@ fragmentShader: `
           topBeam.material.color.setHex(0xb4edd4);
           bottomBeam.material.color.setHex(0x00ff66);
 
-          bloomPass.strength = 0.8;
+          bloomTarget = 0.8;
         });
       });
 
@@ -258,7 +284,9 @@ fragmentShader: `
       function animate () {
         requestAnimationFrame(animate);
         time += 0.01;
-
+        if (!redirected) {
+          bloomTarget = 0.6 + Math.sin(time * 0.8) * 0.15;
+        }
         // ---------------- INTRO SEQUENCE ----------------
         if (time < 1) bloomPass.strength = time * 0.8;
 
@@ -281,22 +309,31 @@ fragmentShader: `
         }
 
         // ---------------- AUTO TRANSITION ----------------
-        if (time > INTRO_END && !redirected) {
-          redirected = true;
-
-          // cinematic fade-out
-          renderer.domElement.style.transition = "opacity 0.8s";
-          renderer.domElement.style.opacity = "0";
-          nav.style.opacity = "0";
-
-          setTimeout(() => {
-            window.location.href = "nav.html";
-          }, 800);
-        }
 
         composer.render();
       }
 
+      function goToNav () {
+        if (redirected) return;
+        redirected = true;
+
+        renderer.domElement.style.transition = "opacity 0.8s";
+        renderer.domElement.style.opacity = "0";
+        nav.style.opacity = "0";
+
+        setTimeout(() => {
+          window.location.href = "nav.html";
+        }, 800);
+      }
+
+      // click anywhere
+      window.addEventListener("click", goToNav);
+
+      // keyboard press anywhere
+      window.addEventListener("keydown", goToNav);
+
+      // mobile touch
+      window.addEventListener("touchstart", goToNav);
       animate();
 
       // ---------------- RESIZE ----------------
@@ -310,6 +347,8 @@ fragmentShader: `
         camera.updateProjectionMatrix();
 
         composer.setSize(window.innerWidth, window.innerHeight);
+
+        drawText();
       });
     </script>
 
