@@ -201,17 +201,20 @@
       gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
     }
   `,
-        fragmentShader: `
-    uniform sampler2D map;
-    uniform float revealY;
-    varying vec2 vUv;
+fragmentShader: `
+  uniform sampler2D map;
+  uniform float revealY;
+  varying vec2 vUv;
 
-    void main() {
-      vec4 tex = texture2D(map, vUv);
-      float mask = smoothstep(revealY - 0.05, revealY + 0.05, vUv.y);
-      gl_FragColor = vec4(tex.rgb, tex.a * mask);
-    }
-  `
+  void main() {
+    vec4 tex = texture2D(map, vUv);
+
+    float dist = abs(vUv.y - 0.5);
+    float mask = smoothstep(revealY - 0.05, revealY + 0.05, dist);
+
+    gl_FragColor = vec4(tex.rgb, tex.a * mask);
+  }
+`
       });
 
       const textMesh = new THREE.Mesh(
