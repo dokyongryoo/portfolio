@@ -21,7 +21,7 @@
       /* NAV */
       nav {
         position: fixed;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+        background: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
         top: 0;
         left: 0;
         width: 100%;
@@ -29,7 +29,7 @@
         justify-content: space-between;
         align-items: center;
         padding: 18px 28px;
-        z-index: 10;
+        z-index: 1000;
         color: white;
         transition: opacity 0.8s;
       }
@@ -37,6 +37,7 @@
       .logo {
         font-weight: bold;
         letter-spacing: 2px;
+        font-size: 14px;
       }
 
       .nav-links {
@@ -50,6 +51,11 @@
         font-size: 14px;
         opacity: 0.75;
         transition: 0.3s;
+      }
+
+      .nav-links a:hover {
+        opacity: 1;
+        text-shadow: 0 0 10px white, 0 0 20px white;
       }
 
       /* PAGE TITLE */
