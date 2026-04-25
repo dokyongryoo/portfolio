@@ -22,7 +22,8 @@
       }
 
       nav {
-        position: absolute;
+        position: fixed;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
         top: 0;
         left: 0;
         width: 100%;
@@ -30,14 +31,15 @@
         justify-content: space-between;
         align-items: center;
         padding: 18px 28px;
-        z-index: 10;
+        z-index: 1000;
         color: white;
         transition: opacity 0.8s;
       }
 
       .logo {
         font-weight: bold;
-        letter-spacing: 2px;
+        letter-spacing: 1px;
+        font-size: 14px;
       }
 
       .nav-links {
@@ -57,6 +59,56 @@
         opacity: 1;
         text-shadow: 0 0 10px white, 0 0 20px white;
       }
+
+      /* HAMBURGER */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        z-index: 1001;
+      }
+
+      .hamburger span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: white;
+        transition: 0.3s;
+      }
+
+      @media (max-width: 600px) {
+        nav {
+          padding: 14px 16px;
+        }
+
+        .hamburger {
+          display: flex;
+        }
+
+        .nav-links {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100vh;
+          background: black;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          gap: 32px;
+          z-index: 1000;
+        }
+
+        .nav-links.open {
+          display: flex;
+        }
+
+        .nav-links a {
+          font-size: 20px;
+        }
+      }
     </style>
 
     <script type="importmap">
@@ -72,7 +124,12 @@
   <body style="overscroll-behavior-x: auto;">
     <nav id="nav">
       <div class="logo">DK's Portfolio</div>
-      <div class="nav-links">
+      <div class="hamburger" id="hamburger" onclick="this.classList.toggle('active'); document.getElementById('navLinks').classList.toggle('open')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="nav-links" id="navLinks">
         <a href="index.html">Home</a>
         <a href="bio.html">Artist Bio</a>
         <a href="work.html">Work</a>
@@ -124,15 +181,11 @@
       composer.addPass(bloomPass);
 
       // ---------- TRIANGLE LASER ----------
-      function createLaser (y, angle) {
+      function createLaser(y, angle) {
         const material = new THREE.ShaderMaterial({
           uniforms: {
-            uTime: {
-              value: 0
-            },
-            uAngle: {
-              value: angle
-            }
+            uTime: { value: 0 },
+            uAngle: { value: angle }
           },
           transparent: true,
           blending: THREE.AdditiveBlending,
@@ -193,7 +246,7 @@
       }
 
       const centerBeam = createLaser(0, 0.0);
-      const topBeam = createLaser(80, 0.5);
+      const topBeam    = createLaser(80, 0.5);
       const bottomBeam = createLaser(-80, -0.5);
 
       // ---------- TEXT ----------
@@ -204,12 +257,11 @@
       texture.magFilter = THREE.LinearFilter;
       texture.generateMipmaps = false;
 
-      function drawText () {
+      function drawText() {
         const dpr = window.devicePixelRatio || 1;
         const fontSize = Math.round(120 * dpr);
 
-        // Measurement pass
-        textCanvas.width = 4096;
+        textCanvas.width  = 4096;
         textCanvas.height = fontSize * 2;
         ctx.font = `bold ${fontSize}px Arial`;
 
@@ -217,12 +269,12 @@
         const textW = Math.ceil(measured.width);
 
         const pad = Math.round(fontSize * 0.2);
-        textCanvas.width = textW + pad * 2;
+        textCanvas.width  = textW + pad * 2;
         textCanvas.height = fontSize + pad * 2;
 
-        ctx.font = `bold ${fontSize}px Arial`;
-        ctx.fillStyle = "rgba(255,255,255,0.6)";
-        ctx.textAlign = "center";
+        ctx.font         = `bold ${fontSize}px Arial`;
+        ctx.fillStyle    = "rgba(255,255,255,0.6)";
+        ctx.textAlign    = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("Dokyong Ryoo", textCanvas.width / 2, textCanvas.height / 2);
 
@@ -237,7 +289,7 @@
         depthTest: false,
       });
 
-      function makeTextGeometry () {
+      function makeTextGeometry() {
         const aspect = textCanvas.width / textCanvas.height;
         const w = width * 0.3;
         return new THREE.PlaneGeometry(w, w / aspect);
@@ -252,7 +304,7 @@
       let time = 0;
       let redirected = false;
 
-      function animate () {
+      function animate() {
         requestAnimationFrame(animate);
 
         if (time < MAX_TIME) time += 0.01;
@@ -260,10 +312,9 @@
         const t = time;
 
         centerBeam.material.uniforms.uTime.value = t;
-        topBeam.material.uniforms.uTime.value = t;
+        topBeam.material.uniforms.uTime.value    = t;
         bottomBeam.material.uniforms.uTime.value = t;
 
-        // Intro motion
         if (t < 1) {
           bloomPass.strength = t * 1.2;
           centerBeam.scale.x = t;
@@ -287,7 +338,7 @@
         composer.render();
       }
 
-      function goToNav (e) {
+      function goToNav(e) {
         if (redirected) return;
         if (e.target.tagName === "A") return;
 
@@ -308,14 +359,14 @@
       animate();
 
       window.addEventListener("resize", () => {
-        width = window.innerWidth;
+        width  = window.innerWidth;
         height = window.innerHeight;
 
         renderer.setSize(width, height);
 
-        camera.left = width / -2;
-        camera.right = width / 2;
-        camera.top = height / 2;
+        camera.left   = width / -2;
+        camera.right  = width / 2;
+        camera.top    = height / 2;
         camera.bottom = height / -2;
         camera.updateProjectionMatrix();
 
