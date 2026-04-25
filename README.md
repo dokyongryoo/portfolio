@@ -1,16 +1,47 @@
-# portfolio
+# Portfolio
 
-This is your project's README a file which contains information about your work. This can include things like instructions, installation guides or documentation. You can write whatever you want here using a simple markup language called [markdown](https://markdownguide.offshoot.io/basic-syntax/). This is the first thing someone will see when they view your project on GitHub, but it won't be visible to the audience viewing your published site on the Web.
+This repository contains the source code and assets for my personal digital art portfolio website. It showcases selected works, experimental pieces, and interactive visual projects.
 
-## project files
+## Featured Projects
 
-When working on a project in netnet.studio you should always see a file-path at the top of the editor, in the case of this file it would be `portfolio/README.md`, this lets you know which file you're currently working on. Clicking on this path in netnet will also open the **Project Files** widget which you can use to upload, create, delete and navigate between the different files in your project.
+### LoFi / NoFi Cinema
+Video using Kodak's Charmera
+→ [View Project](/lofi_nofi_cinema/lofi_nofi_cinema.html)
 
-When you make a change to a file you're working on, you'll notice a small circle appear next to the path, this means your changes have not yet been saved. You'll need to save it (CTRL+S or CMD+S on Mac) to see those changes reflected in the rendered output section of netnet.studio. This is only temporarily saved while working on the project. To make these saved changes permanent, you'll need to click on the **git push** button in the Project Files widget to commit these changes and upload them to your GitHub.
+### From the Metro
+3D exhibition of videos hosted on New Art City
+→ [View Project](/from_the_metro/from_the_metro.html)
 
-## publishing to the Web
+### Ocean 10Print
+10Print remix
+→ [View Project](/10print/10print.html)
 
-When you're ready to publish your work on the Web click on netnet's face and open the **Coding Menu**, under *my code* press the "share" button. Choose to "publish on the Web", where you'll be reminded that you can of course download your project and upload it to your preferred Web host. But, because this project is being versioned on GitHub you could simply ask netnet to publish your work to the Web using GitHub's "ghpages" server, which also conveniently generates a publicly accessible URL for you.
+## Tech Stack
+
+- HTML / CSS / JavaScript
+- Three.js (WebGL visuals)
+- GLSL shaders
+- Responsive design (CSS Grid / Flexbox)
+
+## Viewing the Portfolio
+
+Option 1:
+Open `https://dokyongryoo.github.io/portfolio/index.html` in your browser
+
+Option 2:
+Use a local server (recommended for Three.js)
+
+## Structure
+
+index.html        → Landing page  
+
+nav.html         → Navigation page
+
+work.html         → Gallery of projects, each with its separate folder & page
+
+bio.html         → Artist statement page
+
+contact.html         → Contact page
 
 ----
 
