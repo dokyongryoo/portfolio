@@ -1,0 +1,30 @@
+<link rel="stylesheet" href="https://generativeart.online/css/10print.css">
+<body>
+</body>
+
+<script src="https://cdn.jsdelivr.net/gh/netizenorg/netnet-standard-library/build/nn.min.js"></script>
+<script>
+  /* global nn*/
+  function setup () {
+    requestAnimationFrame(setup)
+    const ran = nn.random(['⋆', '˚', '.', 'ᐟ', '𓂃', '﹏', '~', '`', '⣠', '.', 'ଳ', '𓂁', '𓏲𓂃', '𓈒𓏸.°•'])
+    console.log(ran)
+
+    const r = nn.random(0, 50)
+    const g = nn.random(0, 70)
+    const b = nn.random(220)
+    const c = nn.rgb(r, g, b)
+
+    const show = Math.random() < 0.12
+    const color = show ? c : '#0082c8'
+
+    const y = nn.get('body').scrollHeight
+    window.scrollTo(0, y)
+    nn.create('a-box')
+      .content(ran)
+      .css('color', color)
+      .addTo('body')
+  }
+
+  nn.on('load', setup)
+</script>
