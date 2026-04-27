@@ -225,14 +225,18 @@
 
     <nav id="nav">
       <div class="logo">DK's Portfolio</div>
-      <div class="nav-links">
+      <div class="hamburger" id="hamburger" onclick="this.classList.toggle('active'); document.getElementById('navLinks').classList.toggle('open')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="nav-links" id="navLinks">
         <a href="index.html">Home</a>
         <a href="bio.html">Artist Bio</a>
         <a href="work.html">Work</a>
         <a href="contact.html">Contact</a>
       </div>
     </nav>
-
 
     <div class="content">
       <div class="info-list">

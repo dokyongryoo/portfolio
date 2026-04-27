@@ -59,6 +59,23 @@
         opacity: 1;
         text-shadow: 0 0 10px white, 0 0 20px white;
       }
+      
+      /* HAMBURGER */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        z-index: 1001;
+      }
+
+      .hamburger span {
+        display: block;
+        width: 22px;
+        height: 2px;
+        background: white;
+        transition: 0.3s;
+      }
 
       /* LASER ACCENT LINE */
       .laser-line {
@@ -154,23 +171,6 @@
         opacity: 0.75;
       }
 
-      /* MOBILE */
-      .hamburger {
-        display: none;
-        flex-direction: column;
-        gap: 5px;
-        cursor: pointer;
-        z-index: 1001;
-      }
-
-      .hamburger span {
-        display: block;
-        width: 22px;
-        height: 2px;
-        background: white;
-        transition: 0.3s;
-      }
-
       @media (max-width: 600px) {
         .content {
           padding: 120px 24px 60px;
@@ -208,9 +208,14 @@
 
   <body>
 
-    <nav id="nav">
+     <nav id="nav">
       <div class="logo">DK's Portfolio</div>
-      <div class="nav-links">
+      <div class="hamburger" id="hamburger" onclick="this.classList.toggle('active'); document.getElementById('navLinks').classList.toggle('open')">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+      <div class="nav-links" id="navLinks">
         <a href="index.html">Home</a>
         <a href="bio.html">Artist Bio</a>
         <a href="work.html">Work</a>
