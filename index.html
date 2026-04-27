@@ -11,6 +11,7 @@
         padding: 0;
         box-sizing: border-box;
       }
+
       body {
         margin: 0;
         background: black;
@@ -186,11 +187,15 @@
       composer.addPass(bloomPass);
 
       // ---------- TRIANGLE LASER ----------
-      function createLaser(y, angle) {
+      function createLaser (y, angle) {
         const material = new THREE.ShaderMaterial({
           uniforms: {
-            uTime: { value: 0 },
-            uAngle: { value: angle }
+            uTime: {
+              value: 0
+            },
+            uAngle: {
+              value: angle
+            }
           },
           transparent: true,
           blending: THREE.AdditiveBlending,
@@ -251,7 +256,7 @@
       }
 
       const centerBeam = createLaser(0, 0.0);
-      const topBeam    = createLaser(80, 0.5);
+      const topBeam = createLaser(80, 0.5);
       const bottomBeam = createLaser(-80, -0.5);
 
       // ---------- TEXT ----------
@@ -262,11 +267,11 @@
       texture.magFilter = THREE.LinearFilter;
       texture.generateMipmaps = false;
 
-      function drawText() {
+      function drawText () {
         const dpr = window.devicePixelRatio || 1;
         const fontSize = Math.round(120 * dpr);
 
-        textCanvas.width  = 4096;
+        textCanvas.width = 4096;
         textCanvas.height = fontSize * 2;
         ctx.font = `bold ${fontSize}px Arial`;
 
@@ -274,12 +279,12 @@
         const textW = Math.ceil(measured.width);
 
         const pad = Math.round(fontSize * 0.2);
-        textCanvas.width  = textW + pad * 2;
+        textCanvas.width = textW + pad * 2;
         textCanvas.height = fontSize + pad * 2;
 
-        ctx.font         = `bold ${fontSize}px Arial`;
-        ctx.fillStyle    = "rgba(255,255,255,0.6)";
-        ctx.textAlign    = "center";
+        ctx.font = `bold ${fontSize}px Arial`;
+        ctx.fillStyle = "rgba(255,255,255,0.6)";
+        ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText("Dokyong Ryoo", textCanvas.width / 2, textCanvas.height / 2);
 
@@ -294,7 +299,7 @@
         depthTest: false,
       });
 
-      function makeTextGeometry() {
+      function makeTextGeometry () {
         const aspect = textCanvas.width / textCanvas.height;
         const w = width * 0.3;
         return new THREE.PlaneGeometry(w, w / aspect);
@@ -309,7 +314,7 @@
       let time = 0;
       let redirected = false;
 
-      function animate() {
+      function animate () {
         requestAnimationFrame(animate);
 
         if (time < MAX_TIME) time += 0.01;
@@ -317,7 +322,7 @@
         const t = time;
 
         centerBeam.material.uniforms.uTime.value = t;
-        topBeam.material.uniforms.uTime.value    = t;
+        topBeam.material.uniforms.uTime.value = t;
         bottomBeam.material.uniforms.uTime.value = t;
 
         if (t < 1) {
@@ -343,9 +348,9 @@
         composer.render();
       }
 
-      function goToNav(e) {
+      function goToNav (e) {
         if (redirected) return;
-        if (e.target.tagName === "A") return;
+        if (e.target.closest("#nav")) return;
 
         redirected = true;
 
@@ -364,14 +369,14 @@
       animate();
 
       window.addEventListener("resize", () => {
-        width  = window.innerWidth;
+        width = window.innerWidth;
         height = window.innerHeight;
 
         renderer.setSize(width, height);
 
-        camera.left   = width / -2;
-        camera.right  = width / 2;
-        camera.top    = height / 2;
+        camera.left = width / -2;
+        camera.right = width / 2;
+        camera.top = height / 2;
         camera.bottom = height / -2;
         camera.updateProjectionMatrix();
 
